@@ -1,0 +1,117 @@
+---
+version: '3'
+services:
+ zookeeper01A:
+   image: confluentinc/cp-zookeeper:latest
+   restart: always
+   container_name: zookeeper01A
+   ports:
+     - 2181:2181
+   environment:
+     ZOOKEEPER_CLIENT_PORT: 2181
+     ZOOKEEPER_TICK_TIME: 2000
+     ZOOKEEPER_SERVER_ID: 1
+     ZOOKEEPER_SERVERS: zookeeper01A:2881:3881
+
+ kafka01A:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    container_name: kafka01A
+    ports:
+      - 29091:29091
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper01A:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka01A:9091,PLAINTEXT_HOST://localhost:29091
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+ kafka02A:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    container_name: kafka02A
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper01A:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka02A:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+ kafka03A:      
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    container_name: kafka03A
+    ports:
+      - 29093:29093
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper01A:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka03A:9093,PLAINTEXT_HOST://localhost:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT 
+##cluster b
+ zookeeper02B:
+   image: confluentinc/cp-zookeeper:latest
+   restart: always
+   container_name: zookeeper02B
+   ports:
+     - 2182:2182
+   environment:
+     ZOOKEEPER_CLIENT_PORT: 2182
+     ZOOKEEPER_TICK_TIME: 2000
+     ZOOKEEPER_SERVER_ID: 2
+     ZOOKEEPER_SERVERS: zookeeper02B:2882:3882
+ kafka04B:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    container_name: kafka04B
+    ports:
+      - 29094:29094
+    environment:
+      KAFKA_BROKER_ID: 4
+      KAFKA_BROKER_RACK: B
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper02B:2182
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka04B:9094,PLAINTEXT_HOST://localhost:29094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+ kafka05B:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    container_name: kafka05B
+    ports:
+      - 29095:29095
+    environment:
+      KAFKA_BROKER_ID: 5
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper02B:2182
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka05B:9095,PLAINTEXT_HOST://localhost:29095
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+ kafka06B:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    container_name: kafka06B
+    ports:
+      - 29096:29096
+    environment:
+      KAFKA_BROKER_ID: 6
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper02B:2182
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka06B:9096,PLAINTEXT_HOST://localhost:29096
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT      
+ mirror-maker:
+    image: confluentinc/cp-kafka
+    hostname: mirror-maker
+    container_name: mirror-maker
+    volumes:
+      - ./mm2.config:/tmp/kafka/config
+    ports:
+      - 9099:9099
+      - 29099:29099
+    environment:
+      KAFKA_BROKER_ID: 9
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper01A:2181,zookeeper02B:2182
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://:29099,PLAINTEXT_HOST://:9099
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://mirror-maker:29099,PLAINTEXT_HOST://localhost:9099
+      ALLOW_PLAINTEXT_LISTENER: 'yes'
+      KAFKA_AUTO_OFFSET_RESET: "latest"
